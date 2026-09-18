@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sarvam AI Voice Generator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      color: white;
+      background:
+        radial-gradient(circle at top left, #4631a8, transparent 35%),
+        linear-gradient(135deg, #09001f, #17083d, #020617);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 650px;
+      padding: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(18px);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    p {
+      color: #c9c4e8;
+    }
+
+    textarea,
+    select {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      outline: none;
+      color: white;
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    option {
+      color: black;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 15px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 15px;
+      border: 0;
+      border-radius: 12px;
+      color: white;
+      background: linear-gradient(90deg, #7c3aed, #db2777);
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    audio {
+      display: none;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .download {
+      display: none;
+      width: 100%;
+      margin-top: 12px;
+      padding: 13px;
+      border-radius: 10px;
+      color: white;
+      background: #16a34a;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    #status {
+      min-height: 24px;
+      margin-top: 16px;
+      text-align: center;
+      color: #ddd6fe;
+    }
+
+    .counter {
+      text-align: right;
+      color: #aaa3c8;
+      font-size: 13px;
+    }
+
+    @media (max-width: 550px) {
+      .card {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="card">
+    <h1>🎙️ Sarvam AI Voice</h1>
+    <p>Convert Hindi, English and Indian-language text into natural speech.</p>
+
+    <label for="text">Enter your text</label>
+
+    <textarea
+      id="text"
+      maxlength="2500"
+      placeholder="नमस्ते, आज मैं आपकी क्या मदद कर सकता हूँ?"
+    >नमस्ते, आज मैं आपकी क्या मदद कर सकता हूँ?</textarea>
+
+    <div class="counter">
+      <span id="count">0</span>/2500
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="language">Language</label>
+        <select id="language">
+          <option value="hi-IN">Hindi</option>
+          <option value="en-IN">English</option>
+          <option value="kn-IN">Kannada</option>
+          <option value="ta-IN">Tamil</option>
+          <option value="te-IN">Telugu</option>
+          <option value="ml-IN">Malayalam</option>
+          <option value="bn-IN">Bengali</option>
+          <option value="mr-IN">Marathi</option>
+          <option value="gu-IN">Gujarati</option>
+          <option value="pa-IN">Punjabi</option>
+          <option value="od-IN">Odia</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="speaker">Speaker</label>
+        <select id="speaker">
+          <option value="shubh">Shubh</option>
+          <option value="aditya">Aditya</option>
+          <option value="ritu">Ritu</option>
+          <option value="priya">Priya</option>
+          <option value="neha">Neha</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="generate">Generate Voice</button>
+
+    <div id="status"></div>
+
+    <audio id="audio" controls></audio>
+
+    <a id="download" class="download" download="sarvam-voice.wav">
+      Download Audio
+    </a>
+  </main>
+
+  <script>
+    const textBox = document.getElementById("text");
+    const languageBox = document.getElementById("language");
+    const speakerBox = document.getElementById("speaker");
+    const generateButton = document.getElementById("generate");
+    const statusBox = document.getElementById("status");
+    const audioPlayer = document.getElementById("audio");
+    const downloadButton = document.getElementById("download");
+    const count = document.getElementById("count");
+
+    function updateCounter() {
+      count.textContent = textBox.value.length;
+    }
+
+    textBox.addEventListener("input", updateCounter);
+    updateCounter();
+
+    generateButton.addEventListener("click", async () => {
+      const text = textBox.value.trim();
+
+      if (!text) {
+        statusBox.textContent = "Please enter some text.";
+        return;
+      }
+
+      generateButton.disabled = true;
+      generateButton.textContent = "Generating...";
+      statusBox.textContent = "Please wait...";
+      audioPlayer.style.display = "none";
+      downloadButton.style.display = "none";
+
+      try {
+        const response = await fetch("/api/speak", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            text: text,
+            language: languageBox.value,
+            speaker: speakerBox.value
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || "Voice generation failed");
+        }
+
+        const audioUrl = `data:${result.mime_type};base64,${result.audio}`;
+
+        audioPlayer.src = audioUrl;
+        audioPlayer.style.display = "block";
+
+        downloadButton.href = audioUrl;
+        downloadButton.style.display = "block";
+
+        statusBox.textContent = "Voice generated successfully.";
+      } catch (error) {
+        statusBox.textContent = error.message;
+      } finally {
+        generateButton.disabled = false;
+        generateButton.textContent = "Generate Voice";
+      }
+    });
+  </script>
+</body>
+</html>
